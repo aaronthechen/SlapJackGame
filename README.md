@@ -2,4 +2,4 @@
 
 Basic two player slapjack game
 
-built with nodejs and socketio
+built with node.js and socket.io in 4 days
