@@ -2,4 +2,4 @@
 
 Basic two player slapjack game
 
-built with nodejsand socketio
+built with nodejs and socketio
