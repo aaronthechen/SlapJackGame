@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SlapJack</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="app.js" type="module"></script>
+</head>
+<body>     
+        <div id="infodisplay"></div>
+        <div class="deck computer-deck"></div>
+        <div></div>
+        <div class="player-data">
+            <div class="player p1">
+                Player 1
+                <div class="connected">Connected: <span></span></div>
+                <div class="ready">Ready: <span></span></div>
+              </div>
+              <div class="player p2">
+                Player 2
+                <div class="connected">Connected <span></span></div>
+                <div class="ready">Ready <span></span></div>
+              </div>
+        </div>
+        <div class="deck middle-deck" id="middledeck"></div>
+        <div class="data"></div>
+        <div></div>
+        <div class="deck user-deck" id="userdeck"></div> 
+        <div></div>
+        <button id="dealbutton">Deal</button> 
+        <button id="multiplayerbutton">Join</button>  
+        <button id="readybutton">Ready</button>  
+</body>
+</html>

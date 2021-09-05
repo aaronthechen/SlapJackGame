@@ -1,0 +1,98 @@
+*, *::after, *::before {
+    font-size: 100%;
+    font-family: Arial, Helvetica, sans-serif;
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    display:grid;
+    grid-template-columns: repeat(3, 10rem);
+    grid-gap: 1rem;
+    grid-template-rows: 15rem 15rem 15rem 3rem;
+    justify-content: center;
+}
+
+.deck {
+    height: 100%;
+    width: 100%;
+    border: 1px solid black;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 0.5rem;
+    font-size: 3rem;
+    border-radius: .5rem;
+    color:white;
+    user-select: none;
+}
+.user-deck {
+    background-color: red;
+    cursor:pointer;
+}
+
+.middle-deck {
+    justify-content: center;
+    align-items: center;
+    color: black;
+    cursor:pointer;
+}
+
+.computer-deck {
+    background-color: blue;
+}
+
+.info {
+    margin-top: 5rem;
+    color:black;
+    font-size: 1rem;
+}
+
+.player-data {
+    margin-top: .5rem;
+    color:black;
+    font-size: 1rem;
+}
+
+.data {
+    margin-top: .5rem;
+    color:black;
+    font-size: 1rem;
+}
+
+.card {
+    font-size: 4rem;
+}
+.card::after{
+    content: attr(data-value);
+}
+
+.card.red {
+    color: red;
+}
+
+.card.black {
+    color: black;
+}
+
+button {
+    font-size: 16px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.connected, .ready{
+    font-weight: normal;
+}
+
+.connected span,
+.ready span {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    background: red;
+}
+
+span.green {
+    background: green;
+}
