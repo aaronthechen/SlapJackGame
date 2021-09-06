@@ -8,7 +8,7 @@ const dealButton = document.querySelector('#dealbutton')
 const multiPlayerButton = document.querySelector('#multiplayerbutton')
 const readyButton = document.querySelector('#readybutton')
 
-let userDeck, enemyDeck, middleDeck, stop, canSlap, dealtCards
+let userDeck, enemyDeck, middleDeck, stop, canSlap, dealtCards, slapped
 let currentPlayer = 'user'
 let playerNum = 0
 let ready = false
@@ -82,6 +82,7 @@ function startMultiPlayer() {
 
     socket.on('flipped', () => {
         flipCard(socket)
+        slapped = false
         currentPlayer="user"
         updateData()
     }) 
@@ -116,6 +117,7 @@ function startMultiPlayer() {
             return
         }
         flipCard(socket)
+        slapped = false
     })
     
     document.getElementById("middledeck").addEventListener("click", () => {
@@ -181,6 +183,7 @@ function checkTopCard() {
 }
 
 function checkSlap(socket, deck) {
+    if(slapped) return
     checkTopCard()
     if(canSlap) {
         addDeck(deck)
@@ -197,6 +200,7 @@ function checkSlap(socket, deck) {
         socket.emit('slapped')
     }
     updateData()
+    slapped = true
 }
 
 function addDeck(deck) {
