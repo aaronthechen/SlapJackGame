@@ -24,6 +24,7 @@ function startMultiPlayer() {
     socket.on('player-number', num => {
         if(num===-1) {
             dataElement.innerHTML = "Sorry, the server is full"
+            socket.disconnect()
         }
         else {
             playerNum = parseInt(num)
