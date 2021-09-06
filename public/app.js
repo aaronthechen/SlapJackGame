@@ -268,6 +268,7 @@ function notReady(num) {
     dealtCards=false
     ready=false
     enemyReady=false
+    stop=true
     let player = `.p${parseInt(num)+1}`
     document.querySelector(`${player} .ready span`).classList.remove('green')
 }
