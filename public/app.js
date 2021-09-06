@@ -21,7 +21,7 @@ const socket = io();
 socket.emit('join-room', roomid)
 
 socket.on('cannot-join', () => {
-    room = prompt('error, try another room:')
+    roomid = prompt('error, try another room:')
     socket.emit('join-room', roomid)
 })
 
