@@ -14,22 +14,22 @@ app.use(express.static(path.join(__dirname, "public")))
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`))
 
 let users = []
-let rooms = {}
 let room, playerIndex, usersInRoom
 
 io.on('connection', socket => {
   socket.on('join-room', roomid => {
     const user = {id: socket.id, room: roomid}
     users.push(user)
-    socket.join(roomid)
     usersInRoom = users.filter(user => user.room === roomid).length
     if(usersInRoom>2) {
       const index = users.indexOf(user);
       if (index > -1) {
       users.splice(index, 1);
       io.sockets.to(socket.id).emit('cannot-join')
+      return
       }
     }
+    socket.join(roomid)
     room = roomid
     playerIndex = usersInRoom===1 ? 1 : 2
     console.log(`Player ${playerIndex} connected`)
