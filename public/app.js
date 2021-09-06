@@ -77,7 +77,6 @@ function startMultiPlayer() {
         userDeck = new Deck(JSON.parse(deck).cards.slice(0, deck.numberOfCards))
         middleDeck = new Deck()
         middleDeck.clear()
-        if(ready && enemyReady) {stop = false}
         updateData()
     }) 
 
@@ -107,7 +106,10 @@ function startMultiPlayer() {
     })
     
     document.getElementById("userdeck").addEventListener("click", () => {
-        if (stop &&(!ready || !enemyReady)) {
+        if(ready && enemyReady) {
+            stop = false
+        }
+        if (stop) {
             return
         }
         if(currentPlayer!=='user' || !ready || !enemyReady) {
@@ -117,7 +119,10 @@ function startMultiPlayer() {
     })
     
     document.getElementById("middledeck").addEventListener("click", () => {
-        if (stop) {
+        if(ready && enemyReady) {
+            stop = false
+        }
+        if (stop && (!ready || !enemyReady)) {
             return
         }
         checkSlap(socket, userDeck)
@@ -265,7 +270,7 @@ function notReady(num) {
     middleDeckElement.innerHTML=''
     if(playerNum==0) {currentPlayer='user'}
     else{currentPlayer='enemy'}
-    userDeck, enemyDeck, middleDeck, stop, canSlap, dealtCards=null
+    userDeck, enemyDeck, middleDeck, stop, canSlap=null
     dealtCards=false
     ready=false
     enemyReady=false
