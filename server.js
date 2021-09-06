@@ -14,9 +14,9 @@ app.use(express.static(path.join(__dirname, "public")))
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`))
 
 let users = []
-let room, playerIndex, usersInRoom
 
 io.on('connection', socket => {
+  let room, playerIndex, usersInRoom
   socket.on('join-room', roomid => {
     const user = {id: socket.id, room: roomid}
     users.push(user)
