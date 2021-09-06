@@ -47,6 +47,7 @@ io.on('connection', socket => {
     connections[playerIndex] = null
     //Tell everyone what player numbe just disconnected
     socket.broadcast.emit('player-connection', playerIndex)
+    socket.broadcast.emit('not-ready', playerIndex)
   })
 
   // On Ready
@@ -54,6 +55,12 @@ io.on('connection', socket => {
     socket.broadcast.emit('enemy-ready', playerIndex)
     connections[playerIndex] = true
   })
+
+  socket.on('not-ready', () => {
+    socket.broadcast.emit('not-ready', playerIndex)
+    connections[playerIndex] = false
+  })
+
 
   // Check player connections
   socket.on('check-players', () => {

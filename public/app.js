@@ -46,6 +46,12 @@ function startMultiPlayer() {
         if(ready) playGameMulti(socket)
     })
 
+    socket.on('not-ready', num => {
+        notReady(num)
+        notReady(playerNum)
+        socket.emit('not-ready')
+    })
+
     socket.on('check-players', players => {
         players.forEach((p, i) => {
           if(p.connected){
@@ -250,4 +256,18 @@ function playGameMulti(socket) {
 function playerReady(num) {
     let player = `.p${parseInt(num)+1}`
     document.querySelector(`${player} .ready span`).classList.toggle('green')
+}
+
+function notReady(num) {
+    userDeckElement.innerHTML=''
+    enemyDeckElement.innerHTML=''
+    middleDeckElement.innerHTML=''
+    if(playerNum==0) {currentPlayer='user'}
+    else{currentPlayer='enemy'}
+    userDeck, enemyDeck, middleDeck, stop, canSlap, dealtCards=null
+    dealtCards=false
+    ready=false
+    enemyReady=false
+    let player = `.p${parseInt(num)+1}`
+    document.querySelector(`${player} .ready span`).classList.remove('green')
 }
