@@ -77,6 +77,7 @@ function startMultiPlayer() {
         userDeck = new Deck(JSON.parse(deck).cards.slice(0, deck.numberOfCards))
         middleDeck = new Deck()
         middleDeck.clear()
+        if(ready&&enemyReady) {stop = false}
         updateData()
     }) 
 
