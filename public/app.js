@@ -59,6 +59,7 @@ socket.on("player-decks", ({ userD, enemyD }) => {
     middleDeck.clear()
     updateData()
     dealtCards = true
+    stop = false
 })
 
 socket.on('flipped', () => {
@@ -82,6 +83,7 @@ dealButton.addEventListener('click', ()=> {
 
 userButton.addEventListener("click", () => {
     if (stop) {
+        console.log('here')
         return
     }
     if (currentPlayer !== 'user') {
@@ -112,15 +114,15 @@ function playerConnected(num) {
     }
 }
 
-function playerDisconnected(num) {
+function playerDisconnected() {
     enemyConnected=false
-    let player = `.p${parseInt(num)}`
+    let player = `.p${parseInt(2)}`
     document.querySelector(`${player} .connected span`).classList.remove('green')
     document.querySelector(player).style.fontWeight = 'normal'
 }
 
 function setUp(socket) {
-    if (!dealtCards&&!stop) {
+    if (!dealtCards && !stop) {
         const deck = new Deck()
         deck.shuffle()
         const deckMidpoint = Math.ceil(deck.numberOfCards / 2)
