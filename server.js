@@ -21,7 +21,7 @@ io.on('connection', socket => {
     const user = {id: socket.id, room: roomid}
     users.push(user)
     usersInRoom = users.filter(user => user.room === roomid).length
-    if(usersInRoom>2) {
+    if(usersInRoom>2 || roomid=='' || roomid==null) {
       const index = users.indexOf(user);
       if (index > -1) {
       users.splice(index, 1);
