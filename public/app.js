@@ -77,7 +77,7 @@ function startMultiPlayer() {
         userDeck = new Deck(JSON.parse(deck).cards.slice(0, deck.numberOfCards))
         middleDeck = new Deck()
         middleDeck.clear()
-        if(ready&&enemyReady) {stop = false}
+        if(ready && enemyReady) {stop = false}
         updateData()
     }) 
 
@@ -107,7 +107,7 @@ function startMultiPlayer() {
     })
     
     document.getElementById("userdeck").addEventListener("click", () => {
-        if (stop) {
+        if (stop &&(!ready || !enemyReady)) {
             return
         }
         if(currentPlayer!=='user' || !ready || !enemyReady) {
