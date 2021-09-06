@@ -1,148 +1,126 @@
 import Deck from "../deck.js"
 
+const roomCode = document.querySelector('.room-code')
 const middleDeckElement = document.querySelector('.middle-deck')
 const enemyDeckElement = document.querySelector(".computer-deck")
 const userDeckElement = document.querySelector(".user-deck")
 const dataElement = document.querySelector(".data")
-const dealButton = document.querySelector('#dealbutton')
-const multiPlayerButton = document.querySelector('#multiplayerbutton')
-const readyButton = document.querySelector('#readybutton')
+const dealButton = document.querySelector('#deal')
+const userButton = document.getElementById("userdeck")
+const middleButton = document.getElementById("middledeck")
 
 let userDeck, enemyDeck, middleDeck, stop, canSlap, dealtCards, slapped
+let roomid = prompt("room: ")
 let currentPlayer = 'user'
-let playerNum = 0
-let ready = false
-let enemyReady = false
-let canDeal=false
+let playerNum = 1
+let connected = false
+let enemyConnected = false
 
-multiPlayerButton.addEventListener('click', startMultiPlayer)
+const socket = io();
 
-function startMultiPlayer() {
-    multiPlayerButton.removeEventListener('click', startMultiPlayer)
-    const socket = io();
+socket.emit('join-room', roomid)
 
-    socket.on('player-number', num => {
-        if(num===-1) {
-            dataElement.innerHTML = "Sorry, the server is full"
-            socket.disconnect()
-        }
-        else {
-            playerNum = parseInt(num)
-            if(playerNum===1) currentPlayer = "enemy"
+socket.on('cannot-join', () => {
+    room = prompt('error, try another room:')
+    socket.emit('join-room', roomid)
+})
 
-        console.log(playerNum)
+socket.on('player-number', num => {
+    playerNum = parseInt(num)
+    if (playerNum === 2) {currentPlayer = "enemy"}
+    else {currentPlayer='user'}
+    playerConnected(num)
+    roomCode.append(roomid)
+})
 
-        socket.emit('check-players')
-        }
-    })
+socket.on('player-change', () => {
+    playerNum=1
+    currentPlayer='user'
+    playerConnected(playerNum)
+})
 
-    socket.on('player-connection', num => {
-        console.log(`Player number ${num} connected/disconnected`)
-        playerConnectedOrDisconnected(num)
-    })
-    
-    socket.on('enemy-ready', num => {
-        enemyReady = true;
-        playerReady(num)
-        if(ready) playGameMulti(socket)
-    })
+socket.on('player-connection', num => {
+    console.log(`Player number ${num} connected`)
+    playerConnected(num)
+    dealtCards=!(connected && enemyConnected)
+})
 
-    socket.on('not-ready', num => {
-        notReady(num)
-        notReady(playerNum)
-        socket.emit('not-ready')
-    })
+socket.on('player-disconnect', num => {
+    console.log(`Player number ${num} disconnected`)
+    playerDisconnected(num)
+    stopGame()
+    middleDeckElement.innerHTML = ''
+})
 
-    socket.on('check-players', players => {
-        players.forEach((p, i) => {
-          if(p.connected){
-            playerConnectedOrDisconnected(i)
-          } 
-          if(p.ready) {
-            playerReady(i)
-            if(i !== playerReady) enemyReady = true
-          }
-        })
-    })
+socket.on("player-decks", ({ userD, enemyD }) => {
+    userDeck = new Deck(JSON.parse(userD).cards.slice(0, userD.numberOfCards))
+    enemyDeck = new Deck(JSON.parse(enemyD).cards.slice(0, userD.numberOfCards))
+    middleDeck = new Deck()
+    middleDeck.clear()
+    updateData()
+    dealtCards = true
+})
 
-    socket.on('timeout', () => {
-        dataElement.innerHTML = 'You have reached the 10 minute limit'
-    })
+socket.on('flipped', () => {
+    flipCard(socket)
+    currentPlayer = "user"
+    updateData()
+})
 
-    socket.on("player-0-deck", deck=> {
-        enemyDeck = new Deck(JSON.parse(deck).cards.slice(0, deck.numberOfCards))
-        dealtCards = true
-    }) 
-    
-    socket.on("player-1-deck", deck=> {
-        userDeck = new Deck(JSON.parse(deck).cards.slice(0, deck.numberOfCards))
-        middleDeck = new Deck()
-        middleDeck.clear()
-        updateData()
-    }) 
+socket.on('slapped', () => {
+    checkTopCard()
+    checkSlap(socket, enemyDeck)
+    updateData()
+})
 
-    socket.on('flipped', () => {
-        flipCard(socket)
-        slapped = false
-        currentPlayer="user"
-        updateData()
-    }) 
+dealButton.addEventListener('click', ()=> {
+    if(connected && enemyConnected) {
+        stop = false
+        setUp(socket)
+    }
+})
 
-    socket.on('slapped', () => {
-        checkTopCard()
-        checkSlap(socket, enemyDeck)
-        updateData()
-    })
+userButton.addEventListener("click", () => {
+    if (stop) {
+        return
+    }
+    if (currentPlayer !== 'user') {
+        return
+    }
+    flipCard(socket)
+    slapped = false
+})
 
-    readyButton.addEventListener('click', () => {
-        if(dealtCards) {playGameMulti(socket)}
-        else dataElement.innerHTML = "Please deal"
-    })
-
-    dealButton.addEventListener('click', () =>{
-        if(canDeal) {
-            setUp(socket)
-            updateData()
-        }
-        else{dataElement.innerHTML='No enemy connected'}
-    })
-    
-    document.getElementById("userdeck").addEventListener("click", () => {
-        if(ready && enemyReady) {
-            stop = false
-        }
-        if (stop) {
-            return
-        }
-        if(currentPlayer!=='user' || !ready || !enemyReady) {
-            return
-        }
-        flipCard(socket)
-        slapped = false
-    })
-    
-    document.getElementById("middledeck").addEventListener("click", () => {
-        if(ready && enemyReady) {
-            stop = false
-        }
-        if (stop && (!ready || !enemyReady)) {
-            return
-        }
+middleButton.addEventListener("click", () => {
+    if (stop) {
+        return
+    }
+    if (connected && enemyConnected) {
         checkSlap(socket, userDeck)
-    })
+    }
+})
 
-    function playerConnectedOrDisconnected(num) {
-        let player = `.p${parseInt(num) + 1}`
-        document.querySelector(`${player} .connected span`).classList.toggle('green')
-        if(parseInt(num) === playerNum) document.querySelector(player).style.fontWeight = 'bold'
-        else{
-            canDeal=true
-        }
+function playerConnected(num) {
+    let player = `.p${parseInt(num)}`
+    document.querySelector(`${player} .connected span`).classList.add('green')
+    if (parseInt(num) === playerNum) {
+        connected=true
+        document.querySelector(player).style.fontWeight = 'bold'
+    }
+    else {
+        enemyConnected=true
     }
 }
 
+function playerDisconnected(num) {
+    enemyConnected=false
+    let player = `.p${parseInt(num)}`
+    document.querySelector(`${player} .connected span`).classList.remove('green')
+    document.querySelector(player).style.fontWeight = 'normal'
+}
+
 function setUp(socket) {
-    if(!dealtCards) {
+    if (!dealtCards&&!stop) {
         const deck = new Deck()
         deck.shuffle()
         const deckMidpoint = Math.ceil(deck.numberOfCards / 2)
@@ -150,19 +128,23 @@ function setUp(socket) {
         enemyDeck = new Deck(deck.cards.slice(deckMidpoint, deck.numberOfCards))
         middleDeck = new Deck()
         middleDeck.clear()
-        socket.emit("player-0-deck", JSON.stringify(userDeck))
-        socket.emit("player-1-deck",JSON.stringify(enemyDeck))
-        dealtCards=true
+        socket.emit("player-decks", {
+            userD: JSON.stringify(enemyDeck),
+            enemyD: JSON.stringify(userDeck)
+        })
+        dealtCards = true
+        updateData()
     }
 }
 
 function flipCard(socket) {
-    if(currentPlayer=='user') {
+    slapped = false
+    if (currentPlayer == 'user') {
         const userCard = userDeck.pop()
         middleDeck.push(userCard)
         middleDeckElement.innerHTML = userCard
         updateData()
-        currentPlayer='enemy'
+        currentPlayer = 'enemy'
         socket.emit('flipped')
     }
     else {
@@ -174,30 +156,30 @@ function flipCard(socket) {
 }
 
 function checkTopCard() {
-    if(middleDeck.numberOfCards == 0) {canSlap=true}
+    if (middleDeck.numberOfCards == 0) { canSlap = true }
 
-    else if(canSlap = middleDeck.findCard(middleDeck.numberOfCards).charAt(0)=="J") {canSlap = true}
+    else if (canSlap = middleDeck.findCard(middleDeck.numberOfCards).charAt(0) == "J") { canSlap = true }
 
-    else if(middleDeck.numberOfCards>1 && middleDeck.findCard(middleDeck.numberOfCards).charAt(0)==middleDeck.findCard(middleDeck.numberOfCards-1).charAt(0)) {canSlap = true}
+    else if (middleDeck.numberOfCards > 1 && middleDeck.findCard(middleDeck.numberOfCards).charAt(0) == middleDeck.findCard(middleDeck.numberOfCards - 1).charAt(0)) { canSlap = true }
 
-    else if(middleDeck.findCard(middleDeck.numberOfCards).charAt(0)==middleDeck.findCard(1).charAt(0) && middleDeck.numberOfCards>=3) {canSlap = true}
+    else if (middleDeck.findCard(middleDeck.numberOfCards).charAt(0) == middleDeck.findCard(1).charAt(0) && middleDeck.numberOfCards >= 3) { canSlap = true }
 }
 
 function checkSlap(socket, deck) {
-    if(slapped) return
+    if (slapped) return
     checkTopCard()
-    if(canSlap) {
+    if (canSlap) {
         addDeck(deck)
     }
     else {
         middleDeck.unshift(deck.pop())
-        if(isGameOver(deck)) {
+        if (isGameOver(deck)) {
             updateData()
             return
         }
-        
+
     }
-    if(deck==userDeck) {
+    if (deck == userDeck) {
         socket.emit('slapped')
     }
     updateData()
@@ -206,37 +188,36 @@ function checkSlap(socket, deck) {
 
 function addDeck(deck) {
     if (canSlap) {
-        for(let i = 0; i < middleDeck.numberOfCards;) {
+        for (let i = 0; i < middleDeck.numberOfCards;) {
             deck.push(middleDeck.pop())
         }
         updateData()
         middleDeckElement.innerHTML = ""
-    } 
+    }
 }
 
 function updateData() {
-    if(isGameOver(enemyDeck)||isGameOver(userDeck)) {
-        console.log('reached')
+    if (isGameOver(enemyDeck) || isGameOver(userDeck)) {
         stopGame()
     }
     enemyDeckElement.innerText = enemyDeck.numberOfCards
     userDeckElement.innerText = userDeck.numberOfCards
-    if(currentPlayer=='user') {
-        dataElement.innerText='Your turn'
+    if (currentPlayer == 'user') {
+        dataElement.innerText = 'Your turn'
     }
     else {
-        dataElement.innerText='Enemy turn'
+        dataElement.innerText = 'Enemy turn'
     }
     dataElement.appendChild(document.createElement("br"));
-    dataElement.append("Number of cards in stack: "+middleDeck.numberOfCards)
+    dataElement.append("Number of cards in stack: " + middleDeck.numberOfCards)
     dataElement.appendChild(document.createElement("br"));
     dataElement.append("Bottom card: ")
-    if (middleDeck.numberOfCards>0) {
+    if (middleDeck.numberOfCards > 0) {
         dataElement.append(middleDeck.findCard(1))
     }
     else {
         dataElement.append(0)
-    }  
+    }
 }
 
 function isGameOver(deck) {
@@ -245,41 +226,8 @@ function isGameOver(deck) {
 
 function stopGame() {
     stop = true
-    middleDeckElement.innerHTML='Game Over'
-    if(isGameOver(userDeck)) {
-        userDeckElement.innerHTML='Lose'
-        enemyDeckElement.innerHTML='Win'
-    }
-    else {
-        userDeckElement.innerHTML='Win'
-        enemyDeckElement.innerHTML='Lose'
-    }
-}
-
-function playGameMulti(socket) {
-    if(!ready) {
-        socket.emit('player-ready')
-        ready = true
-        playerReady(playerNum)
-    }
-}
-
-function playerReady(num) {
-    let player = `.p${parseInt(num)+1}`
-    document.querySelector(`${player} .ready span`).classList.toggle('green')
-}
-
-function notReady(num) {
-    userDeckElement.innerHTML=''
-    enemyDeckElement.innerHTML=''
-    middleDeckElement.innerHTML=''
-    if(playerNum==0) {currentPlayer='user'}
-    else{currentPlayer='enemy'}
-    userDeck, enemyDeck, middleDeck, stop, canSlap=null
-    dealtCards=false
-    ready=false
-    enemyReady=false
-    stop=true
-    let player = `.p${parseInt(num)+1}`
-    document.querySelector(`${player} .ready span`).classList.remove('green')
+    middleDeckElement.innerHTML = 'Game over'
+    userDeckElement.innerHTML = ''
+    enemyDeckElement.innerHTML = ''
+    dataElement.innerHTML=''
 }

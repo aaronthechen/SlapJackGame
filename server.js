@@ -13,87 +13,53 @@ app.use(express.static(path.join(__dirname, "public")))
 // Start server
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`))
 
-// Handle a socket connection request from web client
-const connections = [null, null]
+let users = []
+let rooms = {}
+let room, playerIndex, usersInRoom
 
 io.on('connection', socket => {
-  // console.log('New WS Connection')
-
-  // Find an available player number
-  let playerIndex = -1;
-  for (const i in connections) {
-    if (connections[i] === null) {
-      playerIndex = i
-      break
+  socket.on('join-room', roomid => {
+    const user = {id: socket.id, room: roomid}
+    users.push(user)
+    socket.join(roomid)
+    usersInRoom = users.filter(user => user.room === roomid).length
+    if(usersInRoom>2) {
+      const index = users.indexOf(user);
+      if (index > -1) {
+      users.splice(index, 1);
+      io.sockets.to(socket.id).emit('cannot-join')
+      }
     }
-  }
+    room = roomid
+    playerIndex = usersInRoom===1 ? 1 : 2
+    console.log(`Player ${playerIndex} connected`)
+    io.to(socket.id).emit('player-number', playerIndex)
+    if(playerIndex==2){io.sockets.to(room).emit('player-connection', 1)}
+    io.sockets.to(room).emit('player-connection', playerIndex)
+  })
 
-  // Tell the connecting client what player number they are
-    socket.emit('player-number', playerIndex)
-
-  console.log(`Player ${playerIndex} has connected`)
-
-  // Ignore player 3
-  if (playerIndex === -1) return
-
-  connections[playerIndex] = false
-
-  // Tell eveyone what player number just connected
-  socket.broadcast.emit('player-connection', playerIndex)
-
-  // Handle Diconnect
   socket.on('disconnect', () => {
+    io.sockets.in(room).emit('player-disconnect', playerIndex)
     console.log(`Player ${playerIndex} disconnected`)
-    connections[playerIndex] = null
-    //Tell everyone what player numbe just disconnected
-    socket.broadcast.emit('player-connection', playerIndex)
-    socket.broadcast.emit('not-ready', playerIndex)
+
+    playerIndex = usersInRoom===1 ? 1 : 2
+    console.log(`Player became ${playerIndex}`)
+    io.to(room).emit('player-change')
+
+    const removeIndex = users.findIndex(user => user.id === socket.id)
+    if(removeIndex!==-1)
+        return users.splice(removeIndex, 1)[0]
   })
 
-  // On Ready
-  socket.on('player-ready', () => {
-    socket.broadcast.emit('enemy-ready', playerIndex)
-    connections[playerIndex] = true
-  })
-
-  socket.on('not-ready', () => {
-    socket.broadcast.emit('not-ready', playerIndex)
-    connections[playerIndex] = false
-  })
-
-
-  // Check player connections
-  socket.on('check-players', () => {
-    const players = []
-    for (const i in connections) {
-      connections[i] === null ? players.push({connected: false, ready: false}) : players.push({connected: true, ready: connections[i]})
-    }
-    socket.emit('check-players', players)
-  })
-
-  socket.on("player-0-deck", deck=> {
-    socket.broadcast.emit('player-0-deck', deck)
-  }) 
-
-  socket.on("player-1-deck", deck=> {
-    socket.broadcast.emit('player-1-deck', deck)
-  }) 
-
-  socket.on("dealt-cards", () => {
-    socket.broadcast.emit("dealt-cards")
+  socket.on("player-decks", ({ userD, enemyD }) => {
+    socket.to(room).emit("player-decks", {userD, enemyD})
   })
 
   socket.on('flipped', () => {
-    socket.broadcast.emit('flipped')
+    socket.to(room).emit('flipped')
   })
 
   socket.on('slapped', () => {
-    socket.broadcast.emit('slapped')
+    socket.to(room).emit('slapped')
   })
-  // Timeout connection
-  setTimeout(() => {
-    connections[playerIndex] = null
-    socket.emit('timeout')
-    socket.disconnect()
-  }, 600000) // 10 minute limit per player
 })
