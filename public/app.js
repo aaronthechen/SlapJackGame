@@ -68,9 +68,33 @@ socket.on('flipped', () => {
     updateData()
 })
 
-socket.on('slapped', () => {
+socket.on('slapped', num => {
     checkTopCard()
-    checkSlap(socket, enemyDeck)
+    if (canSlap) {
+        if(playerNum===num) {
+            addDeck(userDeck)
+        }
+        else {
+            addDeck(enemyDeck)
+        }
+    }
+    else {
+        if(playerNum===num) {
+            middleDeck.unshift(userDeck.pop())
+            if (isGameOver(userDeck)) {
+                updateData()
+                return
+            }
+        }
+        else {
+            middleDeck.unshift(enemyDeck.pop())
+            if (isGameOver(enemyDeck)) {
+                updateData()
+                return
+            }
+        }
+    }
+    slapped=true
     updateData()
 })
 
@@ -167,25 +191,9 @@ function checkTopCard() {
     else if (middleDeck.findCard(middleDeck.numberOfCards).charAt(0) == middleDeck.findCard(1).charAt(0) && middleDeck.numberOfCards >= 3) { canSlap = true }
 }
 
-function checkSlap(socket, deck) {
+function checkSlap(socket) {
     if (slapped) return
-    checkTopCard()
-    if (canSlap) {
-        addDeck(deck)
-    }
-    else {
-        middleDeck.unshift(deck.pop())
-        if (isGameOver(deck)) {
-            updateData()
-            return
-        }
-
-    }
-    if (deck == userDeck) {
-        socket.emit('slapped')
-    }
-    updateData()
-    slapped = true
+    socket.emit('slapped', playerNum)
 }
 
 function addDeck(deck) {
