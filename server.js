@@ -59,7 +59,7 @@ io.on('connection', socket => {
     socket.to(room).emit('flipped')
   })
 
-  socket.on('slapped', () => {
-    socket.to(room).emit('slapped')
+  socket.on('slapped', num => {
+    io.sockets.to(room).emit('slapped', num)
   })
 })
