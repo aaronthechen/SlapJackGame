@@ -34,7 +34,6 @@ io.on('connection', socket => {
     playerIndex = usersInRoom===1 ? 1 : 2
     console.log(`Player ${playerIndex} connected`)
     io.to(socket.id).emit('player-number', playerIndex)
-    if(playerIndex==2){io.sockets.to(room).emit('player-connection', 1)}
     io.sockets.to(room).emit('player-connection', playerIndex)
   })
 

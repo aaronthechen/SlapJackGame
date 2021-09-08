@@ -13,14 +13,18 @@ const sendButton = document.querySelector('#send')
 const chatInput = document.querySelector(".chat-input")
 
 let userDeck, enemyDeck, middleDeck, stop, canSlap, dealtCards, slapped, enemyName
-let userName = prompt("name: ")
-let roomid = prompt("room: ")
+let userName = prompt("Name (optional): ")
+let roomid = prompt("Room: ")
 let currentPlayer = 'user'
 let playerNum = 1
 let connected = false
 let enemyConnected = false
 
 const socket = io();
+
+if(userName == '' || userName==null) {
+    userName = "Player "+playerNum
+}
 
 chatInput.addEventListener("keydown", () => {
     if (event.key === "Enter") {
@@ -78,13 +82,15 @@ socket.on('player-change', () => {
 })
 
 socket.on('player-connection', num => {
-    console.log(`Player number ${num} connected`)
+    chatElement.append(`Player ${num} connected`)
+    chatElement.appendChild(document.createElement("br"));
     playerConnected(num)
     dealtCards=!(connected && enemyConnected)
 })
 
 socket.on('player-disconnect', num => {
-    console.log(`Player number ${num} disconnected`)
+    chatElement.append(`Player ${num} disconnected`)
+    chatElement.appendChild(document.createElement("br"));
     playerDisconnected(num)
     stopGame()
     middleDeckElement.innerHTML = ''

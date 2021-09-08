@@ -7,6 +7,16 @@
 @-ms-viewport{
     width: device-width;
 }
+
+.link {
+    height: 100%;
+    width: 15rem;
+    display: flex;
+    margin-top: 0.5rem;
+    font-size: auto;
+    overflow: auto;
+}
+
 .chat-input {
     height: 50%;
     width: 15rem;
