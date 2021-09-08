@@ -82,9 +82,9 @@ socket.on('player-change', () => {
 })
 
 socket.on('player-connection', num => {
+    playerConnected(num)
     chatElement.append(`Player ${num} connected`)
     chatElement.appendChild(document.createElement("br"));
-    playerConnected(num)
     dealtCards=!(connected && enemyConnected)
 })
 
@@ -172,6 +172,10 @@ middleButton.addEventListener("click", () => {
 function playerConnected(num) {
     let player = `.p${parseInt(num)}`
     document.querySelector(`${player} .connected span`).classList.add('green')
+    if(playerNum==2) {
+        let p1 = `.p${1}`
+    document.querySelector(`${p1} .connected span`).classList.add('green')
+    }
     if (parseInt(num) === playerNum) {
         connected=true
         document.querySelector(player).style.fontWeight = 'bold'
@@ -206,7 +210,7 @@ function setUp(socket) {
     }
 }
 
-function flipCard(socket) {
+function flipCard() {
     slapped = false
     if (currentPlayer == 'user') {
         const userCard = userDeck.pop()
