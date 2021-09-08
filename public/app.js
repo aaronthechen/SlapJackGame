@@ -173,8 +173,9 @@ function playerConnected(num) {
     let player = `.p${parseInt(num)}`
     document.querySelector(`${player} .connected span`).classList.add('green')
     if(playerNum==2) {
+        enemyConnected=true
         let p1 = `.p${1}`
-    document.querySelector(`${p1} .connected span`).classList.add('green')
+        document.querySelector(`${p1} .connected span`).classList.add('green')
     }
     if (parseInt(num) === playerNum) {
         connected=true
