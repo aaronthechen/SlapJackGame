@@ -12,7 +12,8 @@ const middleButton = document.getElementById("middledeck")
 const sendButton = document.querySelector('#send')
 const chatInput = document.querySelector(".chat-input")
 
-let userDeck, enemyDeck, middleDeck, stop, canSlap, dealtCards, slapped
+let userDeck, enemyDeck, middleDeck, stop, canSlap, dealtCards, slapped, enemyName
+let userName = prompt("name: ")
 let roomid = prompt("room: ")
 let currentPlayer = 'user'
 let playerNum = 1
@@ -23,13 +24,13 @@ const socket = io();
 
 chatInput.addEventListener("keydown", () => {
     if (event.key === "Enter") {
-        sendMessage(chatInput.value, playerNum)
+        sendMessage(userName+": "+chatInput.value, playerNum)
         chatInput.value=''
     }
 })
 
 sendButton.addEventListener('click', () => {
-    sendMessage(chatInput.value, playerNum)
+    sendMessage(userName+": "+chatInput.value, playerNum)
     chatInput.value=''
 }) 
 
@@ -49,7 +50,6 @@ function sendMessage(text, n) {
                 msg: text
             })
         }
-        text="Player "+n+": "+text
         chatElement.append(text)
         chatElement.appendChild(document.createElement("br"));
         chatElement.scrollTop=chatElement.scrollHeight
