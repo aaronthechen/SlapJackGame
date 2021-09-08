@@ -102,7 +102,6 @@ socket.on("player-decks", ({ userD, enemyD }) => {
 
 socket.on('flipped', () => {
     flipCard(socket)
-    currentPlayer = "user"
     updateData()
 })
 
@@ -151,7 +150,7 @@ userButton.addEventListener("click", () => {
     if (currentPlayer !== 'user') {
         return
     }
-    flipCard(socket)
+    socket.emit('flipped')
     slapped = false
 })
 
@@ -209,12 +208,12 @@ function flipCard(socket) {
         middleDeckElement.innerHTML = userCard
         updateData()
         currentPlayer = 'enemy'
-        socket.emit('flipped')
     }
     else {
         const enemyCard = enemyDeck.pop()
         middleDeck.push(enemyCard)
         middleDeckElement.innerHTML = enemyCard
+        currentPLyaer = "user"
     }
     updateData()
 }
