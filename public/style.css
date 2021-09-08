@@ -7,6 +7,24 @@
 @-ms-viewport{
     width: device-width;
 }
+.chat-input {
+    height: 50%;
+    width: 15rem;
+}
+.chat-submit {
+    height: 50%;
+    width: 100%;
+    border: solid 1px #444;
+}
+#chat-section {
+    height: 100%;
+    width: 15rem;
+    border: 1px solid black;
+    display: flex;
+    margin-top: 0.5rem;
+    font-size: auto;
+    overflow: auto;
+}
 
 body {
     margin: 0;

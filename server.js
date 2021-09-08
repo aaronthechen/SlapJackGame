@@ -51,6 +51,10 @@ io.on('connection', socket => {
         return users.splice(removeIndex, 1)[0]
   })
 
+  socket.on('new-message', ({r, msg})=> {
+    socket.to(r).emit("new-message", msg)
+  })
+
   socket.on("player-decks", ({ userD, enemyD }) => {
     socket.to(room).emit("player-decks", {userD, enemyD})
   })

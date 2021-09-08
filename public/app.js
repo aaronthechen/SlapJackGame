@@ -4,10 +4,13 @@ const roomCode = document.querySelector('.room-code')
 const middleDeckElement = document.querySelector('.middle-deck')
 const enemyDeckElement = document.querySelector(".computer-deck")
 const userDeckElement = document.querySelector(".user-deck")
+const chatElement = document.querySelector("#chat-section")
 const dataElement = document.querySelector(".data")
 const dealButton = document.querySelector('#deal')
 const userButton = document.getElementById("userdeck")
 const middleButton = document.getElementById("middledeck")
+const sendButton = document.querySelector('#send')
+const chatInput = document.querySelector(".chat-input")
 
 let userDeck, enemyDeck, middleDeck, stop, canSlap, dealtCards, slapped
 let roomid = prompt("room: ")
@@ -17,6 +20,41 @@ let connected = false
 let enemyConnected = false
 
 const socket = io();
+
+chatInput.addEventListener("keydown", () => {
+    if (event.key === "Enter") {
+        sendMessage(chatInput.value, playerNum)
+        chatInput.value=''
+    }
+})
+
+sendButton.addEventListener('click', () => {
+    sendMessage(chatInput.value, playerNum)
+    chatInput.value=''
+}) 
+
+socket.on('new-message', msg=> {
+    let num = 1
+    if(playerNum==1) {
+        num=2
+    }
+    sendMessage(msg, num)
+})
+
+function sendMessage(text, n) {
+    if(text!='') {
+        if(n==playerNum) {
+            socket.emit('new-message', {
+                r: roomid,
+                msg: text
+            })
+        }
+        text="Player "+n+": "+text
+        chatElement.append(text)
+        chatElement.appendChild(document.createElement("br"));
+        chatElement.scrollTop=chatElement.scrollHeight
+    }
+}
 
 socket.emit('join-room', roomid)
 
