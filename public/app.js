@@ -213,7 +213,7 @@ function flipCard(socket) {
         const enemyCard = enemyDeck.pop()
         middleDeck.push(enemyCard)
         middleDeckElement.innerHTML = enemyCard
-        currentPLyaer = "user"
+        currentPlayer = "user"
     }
     updateData()
 }
